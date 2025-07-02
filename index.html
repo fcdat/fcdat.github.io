@@ -2,63 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TOEIC Answer Form</title>
+  <title>TOEIC Styled Answer Grid</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    input[type="radio"]:checked + label {
+      @apply bg-blue-600 text-white border-blue-600;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 p-6 text-gray-800">
-  <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
-    <h1 class="text-2xl font-bold mb-4">TOEIC Answer Form</h1>
-    <form id="toeic-form">
-      <!-- Repeat this block for parts or paginate if needed -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <!-- Sample: Questions 1–10 -->
-        <template id="question-template">
-          <div class="border p-3 rounded-md bg-gray-100">
-            <label class="font-semibold block mb-2">Question #<span class="question-num">1</span></label>
-            <div class="space-y-1">
-              <label><input type="radio" name="q1" value="A"> A</label><br>
-              <label><input type="radio" name="q1" value="B"> B</label><br>
-              <label><input type="radio" name="q1" value="C"> C</label><br>
-              <label><input type="radio" name="q1" value="D"> D</label>
-            </div>
-          </div>
-        </template>
-
-        <!-- Generated questions go here -->
-        <div id="questions-container" class="contents"></div>
+<body class="bg-gray-100 p-10">
+  <div class="max-w-md mx-auto bg-white p-6 shadow rounded">
+    <h2 class="text-xl font-bold mb-4">TOEIC Answer Sheet</h2>
+    <form id="toeic-form" class="space-y-3">
+      <div class="grid grid-cols-5 gap-2 font-semibold text-center mb-1">
+        <div></div>
+        <div>A</div>
+        <div>B</div>
+        <div>C</div>
+        <div>D</div>
       </div>
 
-      <button type="submit" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        Submit Answers
+      <div id="answer-grid" class="space-y-2"></div>
+
+      <button type="submit"
+              class="mt-4 w-full py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">
+        Submit
       </button>
     </form>
   </div>
 
   <script>
-    const container = document.getElementById('questions-container');
-    const template = document.getElementById('question-template');
+    const answerGrid = document.getElementById("answer-grid");
     const totalQuestions = 100;
 
     for (let i = 1; i <= totalQuestions; i++) {
-      const clone = template.content.cloneNode(true);
-      const label = clone.querySelector(".question-num");
-      const radios = clone.querySelectorAll("input[type=radio]");
-      label.textContent = i;
-      radios.forEach(radio => {
-        radio.name = `q${i}`;
+      const padded = String(i).padStart(2, '0');
+      const row = document.createElement('div');
+      row.className = "grid grid-cols-5 gap-2 items-center text-center";
+
+      // Question number
+      const label = document.createElement('div');
+      label.textContent = padded;
+      label.className = "font-mono font-bold";
+      row.appendChild(label);
+
+      // Choices A-D
+      ['A', 'B', 'C', 'D'].forEach(choice => {
+        const wrapper = document.createElement('div');
+        const id = `q${i}_${choice}`;
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = `q${i}`;
+        input.id = id;
+        input.value = choice;
+        input.className = "hidden peer"; // hide actual radio
+
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.textContent = choice;
+        label.className =
+          "peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 " +
+          "inline-block w-8 h-8 leading-8 rounded-full border border-gray-400 text-center cursor-pointer";
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(label);
+        row.appendChild(wrapper);
       });
-      container.appendChild(clone);
+
+      answerGrid.appendChild(row);
     }
 
     document.getElementById("toeic-form").addEventListener("submit", function (e) {
       e.preventDefault();
       const formData = new FormData(e.target);
-      const answers = {};
+      const result = {};
       for (let [key, value] of formData.entries()) {
-        answers[key] = value;
+        result[key] = value;
       }
-      console.log("Submitted Answers:", answers);
-      alert("Answers submitted! Check the console for output.");
+      console.log("Answers:", result);
+      alert("Answers submitted! Check the console.");
     });
   </script>
 </body>
