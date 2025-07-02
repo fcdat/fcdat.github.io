@@ -31,7 +31,7 @@
 
   <script>
     const answerGrid = document.getElementById("answer-grid");
-    const totalQuestions = 200; // Change to 100 if needed
+    const totalQuestions = 200; // You can change this to 100
 
     for (let i = 1; i <= totalQuestions; i++) {
       const padded = String(i).padStart(2, '0');
@@ -60,6 +60,7 @@
         label.textContent = choice;
         label.className =
           "peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 " +
+          "hover:bg-blue-200 transition-colors duration-150 " +
           "inline-block w-8 h-8 leading-8 rounded-full border border-gray-400 text-center cursor-pointer";
 
         wrapper.appendChild(input);
