@@ -2,19 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>TOEIC Styled Answer Grid</title>
+  <title>TOEIC Answer Sheet</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    input[type="radio"]:checked + label {
-      @apply bg-blue-600 text-white border-blue-600;
-    }
-  </style>
 </head>
 <body class="bg-gray-100 p-10">
   <div class="max-w-md mx-auto bg-white p-6 shadow rounded">
     <h2 class="text-xl font-bold mb-4">TOEIC Answer Sheet</h2>
     <form id="toeic-form" class="space-y-3">
-      <div class="grid grid-cols-5 gap-2 font-semibold text-center mb-1">
+      <!-- Header row -->
+      <div class="grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 font-semibold text-center mb-1">
         <div></div>
         <div>A</div>
         <div>B</div>
@@ -22,23 +18,25 @@
         <div>D</div>
       </div>
 
+      <!-- Questions grid -->
       <div id="answer-grid" class="space-y-2"></div>
 
-      <button type="submit"
-              class="mt-4 w-full py-2 bg-blue-600 text-white font-bold rounded hover:bg-blue-700">
-        Submit
+      <!-- Export to CSV -->
+      <button type="button" id="export-csv"
+              class="mt-4 w-full py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700">
+        Export to CSV
       </button>
     </form>
   </div>
 
   <script>
     const answerGrid = document.getElementById("answer-grid");
-    const totalQuestions = 100;
+    const totalQuestions = 200; // Change to 100 if needed
 
     for (let i = 1; i <= totalQuestions; i++) {
       const padded = String(i).padStart(2, '0');
       const row = document.createElement('div');
-      row.className = "grid grid-cols-5 gap-2 items-center text-center";
+      row.className = "grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 items-center text-center";
 
       // Question number
       const label = document.createElement('div');
@@ -46,7 +44,7 @@
       label.className = "font-mono font-bold";
       row.appendChild(label);
 
-      // Choices A-D
+      // Choices A–D
       ['A', 'B', 'C', 'D'].forEach(choice => {
         const wrapper = document.createElement('div');
         const id = `q${i}_${choice}`;
@@ -55,7 +53,7 @@
         input.name = `q${i}`;
         input.id = id;
         input.value = choice;
-        input.className = "hidden peer"; // hide actual radio
+        input.className = "hidden peer";
 
         const label = document.createElement('label');
         label.htmlFor = id;
@@ -72,15 +70,24 @@
       answerGrid.appendChild(row);
     }
 
-    document.getElementById("toeic-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const result = {};
-      for (let [key, value] of formData.entries()) {
-        result[key] = value;
+    document.getElementById("export-csv").addEventListener("click", function () {
+      const form = document.getElementById("toeic-form");
+      const formData = new FormData(form);
+      let csvContent = "Question,Answer\n";
+
+      for (let i = 1; i <= totalQuestions; i++) {
+        const key = `q${i}`;
+        const answer = formData.get(key) || "";
+        csvContent += `${i},${answer}\n`;
       }
-      console.log("Answers:", result);
-      alert("Answers submitted! Check the console.");
+
+      const blob = new Blob([csvContent], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "toeic_answers.csv";
+      a.click();
+      URL.revokeObjectURL(url);
     });
   </script>
 </body>
