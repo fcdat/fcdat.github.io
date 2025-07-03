@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bookmark Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="url"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #bookmark-list {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+        #bookmark-list ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        #bookmark-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        #bookmark-list a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        #bookmark-list a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Bookmark Storage</h1>
+
+    <form id="bookmark-form">
+        <label for="bookmark-name">Bookmark Name</label>
+        <input type="text" id="bookmark-name" name="bookmark-name" placeholder="Enter bookmark name" required />
+
+        <label for="bookmark-url">Bookmark URL</label>
+        <input type="url" id="bookmark-url" name="bookmark-url" placeholder="https://example.com" required />
+
+        <button type="submit">Add Bookmark</button>
+    </form>
+
+    <section id="bookmark-list">
+        <h2>Your Bookmarks</h2>
+        <ul id="bookmarks"></ul>
+    </section>
+
+    <script>
+        const form = document.getElementById('bookmark-form');
+        const bookmarksList = document.getElementById('bookmarks');
+
+        // Load bookmarks from localStorage on page load
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
+        renderBookmarks();
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('bookmark-name').value.trim();
+            const url = document.getElementById('bookmark-url').value.trim();
+
+            if (name && url) {
+                bookmarks.push({ name, url });
+                localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+                renderBookmarks();
+                form.reset();
+            }
+        });
+
+        function renderBookmarks() {
+            bookmarksList.innerHTML = '';
+            if (bookmarks.length === 0) {
+                bookmarksList.innerHTML = '<li>No bookmarks added yet.</li>';
+                return;
+            }
+            bookmarks.forEach((bookmark, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="${bookmark.url}" target="_blank" rel="noopener noreferrer">${bookmark.name}</a>`;
+                bookmarksList.appendChild(li);
+            });
+        }
+    </script>
+
+</body>
+</html>
