@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TOEIC Answer Sheet - Export to CSV</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f0f4f8;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #005a9c;
+      margin-bottom: 1.5rem;
+    }
+    form {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .question-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.8rem;
+      flex-wrap: wrap;
+    }
+    .question-number {
+      width: 40px;
+      font-weight: bold;
+    }
+    .options {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      flex-grow: 1;
+    }
+    label {
+      cursor: pointer;
+      user-select: none;
+    }
+    input[type="radio"] {
+      margin-right: 0.3rem;
+      cursor: pointer;
+    }
+    button {
+      display: block;
+      margin: 2rem auto 0;
+      background-color: #005a9c;
+      color: white;
+      border: none;
+      padding: 0.8rem 2rem;
+      font-size: 1.1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #003f6b;
+    }
+  </style>
+</head>
+<body>
+  <h1>TOEIC Answer Sheet</h1>
+  <form id="toeicForm" onsubmit="return false;">
+    <div id="questions-container">
+      <!-- Questions will be inserted here by JavaScript -->
+    </div>
+    <button id="exportBtn" type="button">Export to CSV</button>
+  </form>
+
+  <script>
+    const container = document.getElementById('questions-container');
+    const totalQuestions = 200;
+
+    for (let i = 1; i <= totalQuestions; i++) {
+      const questionRow = document.createElement('div');
+      questionRow.className = 'question-row';
+
+      // Question number
+      const qNum = document.createElement('div');
+      qNum.className = 'question-number';
+      qNum.textContent = i + '.';
+      questionRow.appendChild(qNum);
+
+      // Options container
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+
+      ['A', 'B', 'C', 'D'].forEach(option => {
+        const label = document.createElement('label');
+        label.htmlFor = `q${i}_${option}`;
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = `q${i}`;
+        radio.id = `q${i}_${option}`;
+        radio.value = option;
+
+        label.appendChild(radio);
+        label.appendChild(document.createTextNode(option));
+        optionsDiv.appendChild(label);
+      });
+
+      questionRow.appendChild(optionsDiv);
+      container.appendChild(questionRow);
+    }
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const form = document.getElementById('toeicForm');
+      const answers = [];
+
+      // Collect answers for all questions, empty string if unanswered
+      for (let i = 1; i <= totalQuestions; i++) {
+        const selected = form.querySelector(`input[name="q${i}"]:checked`);
+        answers.push({ question: i, answer: selected ? selected.value : '' });
+      }
+
+      // Validate at least one question answered
+      const answeredCount = answers.filter(a => a.answer !== '').length;
+      if (answeredCount === 0) {
+        alert('Please answer at least one question before exporting.');
+        return;
+      }
+
+      // Prepare CSV content
+      let csvContent = 'Question,Answer\n';
+      answers.forEach(({ question, answer }) => {
+        // Escape values if needed (here simple, no commas expected)
+        csvContent += `${question},${answer}\n`;
+      });
+
+      // Create a Blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'toeic_answers.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
