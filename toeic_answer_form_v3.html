@@ -1,76 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>TOEIC Answer Sheet</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-10">
-  <div class="max-w-md mx-auto bg-white p-6 shadow rounded">
-    <h2 class="text-xl font-bold mb-4">TOEIC Answer Sheet</h2>
-    <form id="toeic-form" class="space-y-3">
-      <!-- Header row -->
-      <div class="grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 font-semibold text-center mb-1 border-b border-gray-300 pb-2">
-        <div></div>
-        <div>A</div>
-        <div>B</div>
-        <div>C</div>
-        <div>D</div>
-      </div>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-2xl mx-auto bg-white p-6 shadow rounded">
+    <h2 class="text-2xl font-bold mb-4">TOEIC Answer Sheet</h2>
 
-      <!-- Questions grid -->
-      <div id="answer-grid" class="divide-y divide-gray-200"></div>
+    <!-- Jump to Parts (optional) -->
+    <nav id="toc" class="flex flex-wrap gap-2 mb-4"></nav>
+
+    <form id="toeic-form" class="space-y-6">
+      <!-- Sections get appended here -->
+      <div id="sections"></div>
 
       <!-- Export to CSV -->
       <button type="button" id="export-csv"
-              class="mt-4 w-full py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700">
+        class="mt-2 w-full py-3 bg-green-600 text-white font-bold rounded hover:bg-green-700">
         Export to CSV
       </button>
     </form>
   </div>
 
   <script>
-    const answerGrid = document.getElementById("answer-grid");
-    const totalQuestions = 200; // You can change this to 100
+    // TOEIC L&R structure (total = 200)
+    const parts = [
+      { key: "Part I",  title: "Photographs",             count: 6  },
+      { key: "Part II", title: "Question–Response",       count: 25 },
+      { key: "Part III",title: "Conversations",           count: 39 },
+      { key: "Part IV", title: "Talks",                   count: 30 },
+      { key: "Part V",  title: "Incomplete Sentences",    count: 30 },
+      { key: "Part VI", title: "Text Completion",         count: 16 },
+      { key: "Part VII",title: "Reading Comprehension",   count: 54 },
+    ];
 
-    for (let i = 1; i <= totalQuestions; i++) {
-      const padded = String(i).padStart(2, '0');
+    const sectionsWrap = document.getElementById("sections");
+    const toc = document.getElementById("toc");
+
+    // Builds a single row (question number + A-D radios)
+    function buildRow(qNum) {
+      const padded = String(qNum).padStart(3, '0');
       const row = document.createElement('div');
-      row.className = "grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 items-center text-center py-2";
+      row.className =
+        "grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 items-center text-center py-2";
 
       // Question number
-      const label = document.createElement('div');
-      label.textContent = padded;
-      label.className = "font-mono font-bold";
-      row.appendChild(label);
+      const num = document.createElement('div');
+      num.textContent = padded;
+      num.className = "font-mono font-bold";
+      row.appendChild(num);
 
       // Choices A–D
       ['A', 'B', 'C', 'D'].forEach(choice => {
         const wrapper = document.createElement('div');
-        const id = `q${i}_${choice}`;
+
+        const id = `q${qNum}_${choice}`;
         const input = document.createElement('input');
         input.type = 'radio';
-        input.name = `q${i}`;
+        input.name = `q${qNum}`;
         input.id = id;
         input.value = choice;
         input.className = "hidden peer";
 
-        const choiceLabel = document.createElement('label');
-        choiceLabel.htmlFor = id;
-        choiceLabel.textContent = choice;
-        choiceLabel.className =
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.textContent = choice;
+        label.className =
           "peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 " +
           "hover:bg-blue-200 transition-colors duration-150 " +
           "inline-block w-8 h-8 leading-8 rounded-full border border-gray-400 text-center cursor-pointer";
 
         wrapper.appendChild(input);
-        wrapper.appendChild(choiceLabel);
+        wrapper.appendChild(label);
         row.appendChild(wrapper);
       });
 
-      answerGrid.appendChild(row);
+      return row;
     }
 
+    // Build all sections
+    let currentQ = 1;
+    parts.forEach((part, idx) => {
+      const startQ = currentQ;
+      const endQ = currentQ + part.count - 1;
+
+      // Section container
+      const section = document.createElement('section');
+      section.id = `part-${idx + 1}`;
+      section.className = "border rounded-lg";
+
+      // Section header
+      const header = document.createElement('div');
+      header.className =
+        "flex items-baseline justify-between p-4 border-b bg-gray-50 rounded-t-lg";
+      header.innerHTML = `
+        <div>
+          <h3 class="text-lg font-bold">${part.key}: <span class="font-semibold">${part.title}</span></h3>
+          <p class="text-sm text-gray-600">Questions ${startQ}–${endQ} &middot; ${part.count} questions</p>
+        </div>
+        <span class="text-xs px-2 py-1 rounded bg-gray-200">${part.key}</span>
+      `;
+      section.appendChild(header);
+
+      // Column header row (A–D)
+      const colHeader = document.createElement('div');
+      colHeader.className =
+        "grid grid-cols-[4rem_repeat(4,_1fr)] gap-2 font-semibold text-center px-4 pt-3 pb-2 border-b";
+      colHeader.innerHTML = `
+        <div></div>
+        <div>A</div>
+        <div>B</div>
+        <div>C</div>
+        <div>D</div>
+      `;
+      section.appendChild(colHeader);
+
+      // Rows container with dividers
+      const rows = document.createElement('div');
+      rows.className = "divide-y divide-gray-200";
+      rows.style.padding = "0 1rem"; // left-right padding to align with header
+
+      for (let q = startQ; q <= endQ; q++) {
+        rows.appendChild(buildRow(q));
+      }
+      section.appendChild(rows);
+
+      sectionsWrap.appendChild(section);
+
+      // Add to table of contents
+      const link = document.createElement('a');
+      link.href = `#${section.id}`;
+      link.className =
+        "text-sm px-3 py-1 rounded border hover:bg-gray-100 transition";
+      link.textContent = `${part.key}`;
+      toc.appendChild(link);
+
+      currentQ = endQ + 1;
+    });
+
+    const totalQuestions = parts.reduce((sum, p) => sum + p.count, 0);
+
+    // Export to CSV
     document.getElementById("export-csv").addEventListener("click", function () {
       const form = document.getElementById("toeic-form");
       const formData = new FormData(form);
